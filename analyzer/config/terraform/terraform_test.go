@@ -1,4 +1,4 @@
-package terraform_test
+package terraform
 
 import (
 	"context"
@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/aquasecurity/fanal/analyzer"
-	"github.com/aquasecurity/fanal/analyzer/config/terraform"
 	"github.com/aquasecurity/fanal/types"
 )
 
@@ -36,7 +35,7 @@ func TestConfigAnalyzer_Analyze(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			a := terraform.ConfigAnalyzer{}
+			a := &terraformConfigAnalyzer{}
 			ctx := context.Background()
 			got, err := a.Analyze(ctx, tt.input)
 
@@ -70,7 +69,7 @@ func TestConfigAnalyzer_Required(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			a := terraform.ConfigAnalyzer{}
+			a := &terraformConfigAnalyzer{}
 			got := a.Required(tt.filePath, nil)
 			assert.Equal(t, tt.want, got)
 		})

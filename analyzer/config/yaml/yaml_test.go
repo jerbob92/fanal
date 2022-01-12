@@ -1,16 +1,15 @@
-package yaml_test
+package yaml
 
 import (
 	"context"
 	"os"
-	"regexp"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/aquasecurity/fanal/analyzer"
-	"github.com/aquasecurity/fanal/analyzer/config/yaml"
+	"github.com/aquasecurity/fanal/config/parser/yaml"
 	"github.com/aquasecurity/fanal/types"
 )
 
@@ -217,7 +216,9 @@ func Test_yamlConfigAnalyzer_Analyze(t *testing.T) {
 			require.NoError(t, err)
 			defer f.Close()
 
-			a := yaml.NewConfigAnalyzer(nil)
+			a := &yamlConfigAnalyzer{
+				parser: &yaml.Parser{},
+			}
 			ctx := context.Background()
 			got, err := a.Analyze(ctx, analyzer.AnalysisInput{
 				FilePath: tt.inputFile,
@@ -237,10 +238,9 @@ func Test_yamlConfigAnalyzer_Analyze(t *testing.T) {
 
 func Test_yamlConfigAnalyzer_Required(t *testing.T) {
 	tests := []struct {
-		name        string
-		filePattern *regexp.Regexp
-		filePath    string
-		want        bool
+		name     string
+		filePath string
+		want     bool
 	}{
 		{
 			name:     "yaml",
@@ -257,16 +257,12 @@ func Test_yamlConfigAnalyzer_Required(t *testing.T) {
 			filePath: "deployment.json",
 			want:     false,
 		},
-		{
-			name:        "file pattern",
-			filePattern: regexp.MustCompile(`foo*`),
-			filePath:    "foo_file",
-			want:        true,
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := yaml.NewConfigAnalyzer(tt.filePattern)
+			s := &yamlConfigAnalyzer{
+				parser: &yaml.Parser{},
+			}
 
 			got := s.Required(tt.filePath, nil)
 			assert.Equal(t, tt.want, got)
@@ -275,7 +271,9 @@ func Test_yamlConfigAnalyzer_Required(t *testing.T) {
 }
 
 func Test_yamlConfigAnalyzer_Type(t *testing.T) {
-	s := yaml.NewConfigAnalyzer(nil)
+	s := &yamlConfigAnalyzer{
+		parser: &yaml.Parser{},
+	}
 
 	want := analyzer.TypeYaml
 	got := s.Type()

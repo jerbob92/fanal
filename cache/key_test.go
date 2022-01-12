@@ -162,9 +162,8 @@ func TestCalcKey(t *testing.T) {
 				SkipDirs:  tt.args.skipDirs,
 			}
 			scannerOpt := config.ScannerOption{
-				FilePatterns: tt.args.patterns,
-				PolicyPaths:  tt.args.policy,
-				DataPaths:    tt.args.data,
+				PolicyPaths: tt.args.policy,
+				DataPaths:   tt.args.data,
 			}
 			got, err := CalcKey(tt.args.key, tt.args.analyzerVersions, tt.args.hookVersions, artifactOpt, scannerOpt)
 			if tt.wantErr != "" {

@@ -12,6 +12,10 @@ import (
 	"golang.org/x/xerrors"
 )
 
+func init() {
+	analyzer.RegisterAnalyzer(&cloudFormationConfigAnalyzer{})
+}
+
 const version = 1
 
 var requiredExts = []string{".yaml", ".json", ".yml"}
@@ -22,15 +26,10 @@ var cloudFormationMatchRegex = []*regexp.Regexp{
 	regexp.MustCompile(`(?i)(?m)^\s*?["|]?Parameters[:|"]?`),
 }
 
-type ConfigAnalyzer struct {
-}
-
-func NewConfigAnalyzer() ConfigAnalyzer {
-	return ConfigAnalyzer{}
-}
+type cloudFormationConfigAnalyzer struct{}
 
 // Analyze returns a results of CloudFormation file
-func (a ConfigAnalyzer) Analyze(_ context.Context, input analyzer.AnalysisInput) (*analyzer.AnalysisResult, error) {
+func (a cloudFormationConfigAnalyzer) Analyze(_ context.Context, input analyzer.AnalysisInput) (*analyzer.AnalysisResult, error) {
 	content, err := io.ReadAll(input.Content)
 	if err != nil {
 		return nil, xerrors.Errorf("failed to read the CloudFormation file: %w", err)
@@ -49,7 +48,7 @@ func (a ConfigAnalyzer) Analyze(_ context.Context, input analyzer.AnalysisInput)
 	return &analyzer.AnalysisResult{}, nil
 }
 
-func (a ConfigAnalyzer) Required(filePath string, _ os.FileInfo) bool {
+func (a cloudFormationConfigAnalyzer) Required(filePath string, _ os.FileInfo) bool {
 	for _, extension := range requiredExts {
 		if filepath.Ext(filePath) == extension {
 			return true
@@ -58,11 +57,11 @@ func (a ConfigAnalyzer) Required(filePath string, _ os.FileInfo) bool {
 	return false
 }
 
-func (ConfigAnalyzer) Type() analyzer.Type {
+func (cloudFormationConfigAnalyzer) Type() analyzer.Type {
 	return analyzer.TypeCloudFormation
 }
 
-func (ConfigAnalyzer) Version() int {
+func (cloudFormationConfigAnalyzer) Version() int {
 	return version
 }
 

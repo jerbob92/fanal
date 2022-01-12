@@ -2,6 +2,13 @@ package all
 
 import (
 	_ "github.com/aquasecurity/fanal/analyzer/command/apk"
+	_ "github.com/aquasecurity/fanal/analyzer/config/cloudformation"
+	_ "github.com/aquasecurity/fanal/analyzer/config/docker"
+	_ "github.com/aquasecurity/fanal/analyzer/config/hcl"
+	_ "github.com/aquasecurity/fanal/analyzer/config/json"
+	_ "github.com/aquasecurity/fanal/analyzer/config/terraform"
+	_ "github.com/aquasecurity/fanal/analyzer/config/toml"
+	_ "github.com/aquasecurity/fanal/analyzer/config/yaml"
 	_ "github.com/aquasecurity/fanal/analyzer/language/dotnet/nuget"
 	_ "github.com/aquasecurity/fanal/analyzer/language/golang/binary"
 	_ "github.com/aquasecurity/fanal/analyzer/language/golang/mod"

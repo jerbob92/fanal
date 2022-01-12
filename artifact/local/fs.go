@@ -40,12 +40,12 @@ type Artifact struct {
 }
 
 func NewArtifact(rootPath string, c cache.ArtifactCache, artifactOpt artifact.Option, scannerOpt config.ScannerOption) (artifact.Artifact, error) {
-	// Register config analyzers
-	if err := config.RegisterConfigAnalyzers(scannerOpt.FilePatterns); err != nil {
-		return nil, xerrors.Errorf("config analyzer error: %w", err)
+	s, err := scanner.New(rootPath, scannerOpt.Namespaces, scannerOpt.PolicyPaths, scannerOpt.DataPaths, scannerOpt.Trace)
+	if err != nil {
+		return nil, xerrors.Errorf("scanner error: %w", err)
 	}
 
-	s, err := scanner.New(rootPath, scannerOpt.Namespaces, scannerOpt.PolicyPaths, scannerOpt.DataPaths, scannerOpt.Trace)
+	a, err := analyzer.NewAnalyzerGroup(artifactOpt.AnalyzerGroup, artifactOpt.DisabledAnalyzers, artifactOpt.FilePatterns)
 	if err != nil {
 		return nil, xerrors.Errorf("scanner error: %w", err)
 	}
@@ -54,7 +54,7 @@ func NewArtifact(rootPath string, c cache.ArtifactCache, artifactOpt artifact.Op
 		rootPath:    filepath.Clean(rootPath),
 		cache:       c,
 		walker:      walker.NewFS(buildAbsPaths(rootPath, artifactOpt.SkipFiles), buildAbsPaths(rootPath, artifactOpt.SkipDirs)),
-		analyzer:    analyzer.NewAnalyzerGroup(artifactOpt.AnalyzerGroup, artifactOpt.DisabledAnalyzers),
+		analyzer:    a,
 		hookManager: hook.NewManager(artifactOpt.DisabledHooks),
 		scanner:     s,
 

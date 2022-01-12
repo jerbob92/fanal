@@ -3,6 +3,7 @@ package analyzer
 import (
 	"context"
 	"os"
+	"regexp"
 	"sort"
 	"strings"
 	"sync"
@@ -154,14 +155,39 @@ func (r *AnalysisResult) Merge(new *AnalysisResult) {
 type AnalyzerGroup struct {
 	analyzers       []analyzer
 	configAnalyzers []configAnalyzer
+	filePatterns    map[Type][]*regexp.Regexp
 }
 
-func NewAnalyzerGroup(groupName Group, disabledAnalyzers []Type) AnalyzerGroup {
+const separator = ":"
+
+func NewAnalyzerGroup(groupName Group, disabledAnalyzers []Type, filePatterns []string) (AnalyzerGroup, error) {
 	if groupName == "" {
 		groupName = GroupBuiltin
 	}
 
-	var group AnalyzerGroup
+	group := AnalyzerGroup{
+		filePatterns: map[Type][]*regexp.Regexp{},
+	}
+
+	for _, p := range filePatterns {
+		// e.g. "dockerfile:my_dockerfile_*"
+		s := strings.SplitN(p, separator, 2)
+		if len(s) != 2 {
+			return group, xerrors.Errorf("invalid file pattern (%s)", p)
+		}
+		fileType, pattern := s[0], s[1]
+		r, err := regexp.Compile(pattern)
+		if err != nil {
+			return group, xerrors.Errorf("invalid file regexp (%s): %w", p, err)
+		}
+
+		if _, ok := group.filePatterns[Type(fileType)]; !ok {
+			group.filePatterns[Type(fileType)] = []*regexp.Regexp{}
+		}
+
+		group.filePatterns[Type(fileType)] = append(group.filePatterns[Type(fileType)], r)
+	}
+
 	for analyzerType, a := range analyzers {
 		if isDisabled(analyzerType, disabledAnalyzers) {
 			continue
@@ -185,7 +211,7 @@ func NewAnalyzerGroup(groupName Group, disabledAnalyzers []Type) AnalyzerGroup {
 		group.configAnalyzers = append(group.configAnalyzers, a)
 	}
 
-	return group
+	return group, nil
 }
 
 // AnalyzerVersions returns analyzer version identifier used for cache keys.
@@ -213,7 +239,17 @@ func (ag AnalyzerGroup) AnalyzeFile(ctx context.Context, wg *sync.WaitGroup, lim
 	}
 	for _, a := range ag.analyzers {
 		// filepath extracted from tar file doesn't have the prefix "/"
-		if !a.Required(strings.TrimLeft(filePath, "/"), info) {
+		cleanPath := strings.TrimLeft(filePath, "/")
+
+		filePatternMatch := false
+		for _, pattern := range ag.filePatterns[a.Type()] {
+			if pattern.MatchString(cleanPath) {
+				filePatternMatch = true
+				break
+			}
+		}
+
+		if !filePatternMatch && !a.Required(cleanPath, info) {
 			continue
 		}
 		rc, err := opener()

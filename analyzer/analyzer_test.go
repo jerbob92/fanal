@@ -248,6 +248,7 @@ func TestAnalyzeFile(t *testing.T) {
 		filePath          string
 		testFilePath      string
 		disabledAnalyzers []analyzer.Type
+		filePatterns      []string
 	}
 	tests := []struct {
 		name    string
@@ -352,6 +353,28 @@ func TestAnalyzeFile(t *testing.T) {
 			},
 			wantErr: "unable to open /lib/apk/db/installed",
 		},
+		{
+			name: "happy path with library analyzer file pattern",
+			args: args{
+				filePath:     "/app/Gemfile-dev.lock",
+				testFilePath: "testdata/app/Gemfile.lock",
+				filePatterns: []string{"bundler:Gemfile(-.*)?\\.lock"},
+			},
+			want: &analyzer.AnalysisResult{
+				Applications: []types.Application{
+					{
+						Type:     "bundler",
+						FilePath: "/app/Gemfile-dev.lock",
+						Libraries: []types.Package{
+							{
+								Name:    "actioncable",
+								Version: "5.2.3",
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -359,7 +382,8 @@ func TestAnalyzeFile(t *testing.T) {
 			limit := semaphore.NewWeighted(3)
 
 			got := new(analyzer.AnalysisResult)
-			a := analyzer.NewAnalyzerGroup(analyzer.GroupBuiltin, tt.args.disabledAnalyzers)
+			a, err := analyzer.NewAnalyzerGroup(analyzer.GroupBuiltin, tt.args.disabledAnalyzers, tt.args.filePatterns)
+			require.NoError(t, err)
 
 			info, err := os.Stat(tt.args.testFilePath)
 			require.NoError(t, err)
@@ -394,6 +418,7 @@ func TestAnalyzeConfig(t *testing.T) {
 		targetOS          types.OS
 		configBlob        []byte
 		disabledAnalyzers []analyzer.Type
+		filePatterns      []string
 	}
 	tests := []struct {
 		name string
@@ -436,7 +461,9 @@ func TestAnalyzeConfig(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			a := analyzer.NewAnalyzerGroup(analyzer.GroupBuiltin, tt.args.disabledAnalyzers)
+			a, err := analyzer.NewAnalyzerGroup(analyzer.GroupBuiltin, tt.args.disabledAnalyzers, tt.args.filePatterns)
+			require.NoError(t, err)
+
 			got := a.AnalyzeImageConfig(tt.args.targetOS, tt.args.configBlob)
 			assert.Equal(t, tt.want, got)
 		})
@@ -453,78 +480,94 @@ func TestAnalyzer_AnalyzerVersions(t *testing.T) {
 			name:     "happy path",
 			disabled: []analyzer.Type{},
 			want: map[string]int{
-				"alpine":     1,
-				"amazon":     1,
-				"apk":        1,
-				"bundler":    1,
-				"cargo":      1,
-				"centos":     1,
-				"rocky":      1,
-				"alma":       1,
-				"composer":   1,
-				"debian":     1,
-				"dpkg":       2,
-				"fedora":     1,
-				"gobinary":   1,
-				"gomod":      1,
-				"jar":        1,
-				"node-pkg":   1,
-				"npm":        1,
-				"nuget":      2,
-				"oracle":     1,
-				"photon":     1,
-				"pip":        1,
-				"pipenv":     1,
-				"poetry":     1,
-				"pom":        1,
-				"redhat":     1,
-				"rpm":        1,
-				"suse":       1,
-				"ubuntu":     1,
-				"yarn":       1,
-				"python-pkg": 1,
-				"gemspec":    1,
+				"alpine":         1,
+				"amazon":         1,
+				"apk":            1,
+				"bundler":        1,
+				"cargo":          1,
+				"centos":         1,
+				"cloudFormation": 1,
+				"rocky":          1,
+				"alma":           1,
+				"composer":       1,
+				"debian":         1,
+				"dockerfile":     1,
+				"dpkg":           2,
+				"fedora":         1,
+				"gobinary":       1,
+				"gomod":          1,
+				"hcl":            1,
+				"jar":            1,
+				"json":           1,
+				"node-pkg":       1,
+				"npm":            1,
+				"nuget":          2,
+				"oracle":         1,
+				"photon":         1,
+				"pip":            1,
+				"pipenv":         1,
+				"poetry":         1,
+				"pom":            1,
+				"redhat":         1,
+				"rpm":            1,
+				"suse":           1,
+				"terraform":      1,
+				"toml":           1,
+				"ubuntu":         1,
+				"yaml":           1,
+				"yarn":           1,
+				"python-pkg":     1,
+				"gemspec":        1,
 			},
 		},
 		{
 			name:     "disable analyzers",
 			disabled: []analyzer.Type{analyzer.TypeAlpine, analyzer.TypeUbuntu},
 			want: map[string]int{
-				"amazon":     1,
-				"apk":        1,
-				"bundler":    1,
-				"cargo":      1,
-				"centos":     1,
-				"rocky":      1,
-				"alma":       1,
-				"composer":   1,
-				"debian":     1,
-				"dpkg":       2,
-				"fedora":     1,
-				"gobinary":   1,
-				"gomod":      1,
-				"jar":        1,
-				"node-pkg":   1,
-				"npm":        1,
-				"nuget":      2,
-				"oracle":     1,
-				"photon":     1,
-				"pip":        1,
-				"pipenv":     1,
-				"poetry":     1,
-				"pom":        1,
-				"redhat":     1,
-				"rpm":        1,
-				"suse":       1,
-				"yarn":       1,
-				"python-pkg": 1,
-				"gemspec":    1,
+				"amazon":         1,
+				"apk":            1,
+				"bundler":        1,
+				"cargo":          1,
+				"centos":         1,
+				"cloudFormation": 1,
+				"rocky":          1,
+				"alma":           1,
+				"composer":       1,
+				"debian":         1,
+				"dockerfile":     1,
+				"dpkg":           2,
+				"fedora":         1,
+				"gobinary":       1,
+				"gomod":          1,
+				"hcl":            1,
+				"jar":            1,
+				"json":           1,
+				"node-pkg":       1,
+				"npm":            1,
+				"nuget":          2,
+				"oracle":         1,
+				"photon":         1,
+				"pip":            1,
+				"pipenv":         1,
+				"poetry":         1,
+				"pom":            1,
+				"redhat":         1,
+				"rpm":            1,
+				"suse":           1,
+				"terraform":      1,
+				"toml":           1,
+				"yaml":           1,
+				"yarn":           1,
+				"python-pkg":     1,
+				"gemspec":        1,
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			a := analyzer.NewAnalyzerGroup(analyzer.GroupBuiltin, tt.disabled)
+			a, err := analyzer.NewAnalyzerGroup(analyzer.GroupBuiltin, tt.disabled, nil)
+			require.NoError(t, err)
+
 			got := a.AnalyzerVersions()
 			fmt.Printf("%v\n", got)
 			assert.Equal(t, tt.want, got)
@@ -556,7 +599,9 @@ func TestAnalyzer_ImageConfigAnalyzerVersions(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			a := analyzer.NewAnalyzerGroup(analyzer.GroupBuiltin, tt.disabled)
+			a, err := analyzer.NewAnalyzerGroup(analyzer.GroupBuiltin, tt.disabled, nil)
+			require.NoError(t, err)
+
 			got := a.ImageConfigAnalyzerVersions()
 			assert.Equal(t, tt.want, got)
 		})

@@ -1,16 +1,14 @@
-package json_test
+package json
 
 import (
 	"context"
 	"os"
-	"regexp"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/aquasecurity/fanal/analyzer"
-	"github.com/aquasecurity/fanal/analyzer/config/json"
 	"github.com/aquasecurity/fanal/types"
 )
 
@@ -132,7 +130,7 @@ func Test_jsonConfigAnalyzer_Analyze(t *testing.T) {
 			require.NoError(t, err)
 			defer f.Close()
 
-			s := json.NewConfigAnalyzer(nil)
+			s := &jsonConfigAnalyzer{}
 
 			ctx := context.Background()
 			got, err := s.Analyze(ctx, analyzer.AnalysisInput{
@@ -153,10 +151,9 @@ func Test_jsonConfigAnalyzer_Analyze(t *testing.T) {
 
 func Test_jsonConfigAnalyzer_Required(t *testing.T) {
 	tests := []struct {
-		name        string
-		filePattern *regexp.Regexp
-		filePath    string
-		want        bool
+		name     string
+		filePath string
+		want     bool
 	}{
 		{
 			name:     "json",
@@ -173,16 +170,10 @@ func Test_jsonConfigAnalyzer_Required(t *testing.T) {
 			filePath: "package-lock.json",
 			want:     false,
 		},
-		{
-			name:        "file pattern",
-			filePattern: regexp.MustCompile(`foo*`),
-			filePath:    "foo_file",
-			want:        true,
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := json.NewConfigAnalyzer(tt.filePattern)
+			s := &jsonConfigAnalyzer{}
 
 			got := s.Required(tt.filePath, nil)
 			assert.Equal(t, tt.want, got)
@@ -191,7 +182,7 @@ func Test_jsonConfigAnalyzer_Required(t *testing.T) {
 }
 
 func Test_jsonConfigAnalyzer_Type(t *testing.T) {
-	s := json.NewConfigAnalyzer(nil)
+	s := &jsonConfigAnalyzer{}
 
 	want := analyzer.TypeJSON
 	got := s.Type()

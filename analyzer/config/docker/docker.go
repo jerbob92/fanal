@@ -2,9 +2,9 @@ package docker
 
 import (
 	"context"
+	"log"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	"golang.org/x/xerrors"
@@ -14,23 +14,23 @@ import (
 	"github.com/aquasecurity/fanal/types"
 )
 
+func init() {
+	analyzer.RegisterAnalyzer(&dockerConfigAnalyzer{
+		parser: &dockerfile.Parser{},
+	})
+}
+
 const version = 1
 
 var requiredFile = "Dockerfile"
 
-type ConfigAnalyzer struct {
-	parser      *dockerfile.Parser
-	filePattern *regexp.Regexp
+type dockerConfigAnalyzer struct {
+	parser *dockerfile.Parser
 }
 
-func NewConfigAnalyzer(filePattern *regexp.Regexp) ConfigAnalyzer {
-	return ConfigAnalyzer{
-		parser:      &dockerfile.Parser{},
-		filePattern: filePattern,
-	}
-}
-
-func (s ConfigAnalyzer) Analyze(_ context.Context, input analyzer.AnalysisInput) (*analyzer.AnalysisResult, error) {
+func (s dockerConfigAnalyzer) Analyze(_ context.Context, input analyzer.AnalysisInput) (*analyzer.AnalysisResult, error) {
+	log.Println(input.FilePath)
+	log.Println(input.Dir)
 	parsed, err := s.parser.Parse(input.Content)
 	if err != nil {
 		return nil, xerrors.Errorf("unable to parse Dockerfile (%s): %w", input.FilePath, err)
@@ -49,11 +49,7 @@ func (s ConfigAnalyzer) Analyze(_ context.Context, input analyzer.AnalysisInput)
 
 // Required does a case-insensitive check for filePath and returns true if
 // filePath equals/startsWith/hasExtension requiredFile
-func (s ConfigAnalyzer) Required(filePath string, _ os.FileInfo) bool {
-	if s.filePattern != nil && s.filePattern.MatchString(filePath) {
-		return true
-	}
-
+func (s dockerConfigAnalyzer) Required(filePath string, _ os.FileInfo) bool {
 	base := filepath.Base(filePath)
 	ext := filepath.Ext(base)
 	if strings.EqualFold(base, requiredFile+ext) {
@@ -66,10 +62,10 @@ func (s ConfigAnalyzer) Required(filePath string, _ os.FileInfo) bool {
 	return false
 }
 
-func (s ConfigAnalyzer) Type() analyzer.Type {
+func (s dockerConfigAnalyzer) Type() analyzer.Type {
 	return analyzer.TypeDockerfile
 }
 
-func (s ConfigAnalyzer) Version() int {
+func (s dockerConfigAnalyzer) Version() int {
 	return version
 }

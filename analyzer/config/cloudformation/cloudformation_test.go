@@ -41,7 +41,7 @@ func TestConfigAnalyzer_Required(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			a := ConfigAnalyzer{}
+			a := cloudFormationConfigAnalyzer{}
 			got := a.Required(tt.filePath, nil)
 			assert.Equal(t, tt.want, got)
 		})
@@ -116,7 +116,7 @@ spec:
        "bar", 
        "baa"
     ]
-}
+}hcl.NewConfigAnalyzer
 `),
 			filePath: "random.yaml",
 			want:     0,
@@ -124,7 +124,7 @@ spec:
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			a := ConfigAnalyzer{}
+			a := cloudFormationConfigAnalyzer{}
 			got, err := a.Analyze(context.Background(), analyzer.AnalysisInput{
 				FilePath: tt.filePath,
 				Content:  tt.content,

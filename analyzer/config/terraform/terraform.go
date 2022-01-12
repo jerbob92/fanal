@@ -9,19 +9,18 @@ import (
 	"github.com/aquasecurity/fanal/types"
 )
 
+func init() {
+	analyzer.RegisterAnalyzer(&terraformConfigAnalyzer{})
+}
+
 const version = 1
 
 const requiredExt = ".tf"
 
-type ConfigAnalyzer struct {
-}
-
-func NewConfigAnalyzer() ConfigAnalyzer {
-	return ConfigAnalyzer{}
-}
+type terraformConfigAnalyzer struct{}
 
 // Analyze returns a name of Terraform file
-func (a ConfigAnalyzer) Analyze(_ context.Context, input analyzer.AnalysisInput) (*analyzer.AnalysisResult, error) {
+func (a terraformConfigAnalyzer) Analyze(_ context.Context, input analyzer.AnalysisInput) (*analyzer.AnalysisResult, error) {
 	return &analyzer.AnalysisResult{
 		Configs: []types.Config{
 			{
@@ -32,14 +31,14 @@ func (a ConfigAnalyzer) Analyze(_ context.Context, input analyzer.AnalysisInput)
 	}, nil
 }
 
-func (a ConfigAnalyzer) Required(filePath string, _ os.FileInfo) bool {
+func (a terraformConfigAnalyzer) Required(filePath string, _ os.FileInfo) bool {
 	return filepath.Ext(filePath) == requiredExt
 }
 
-func (ConfigAnalyzer) Type() analyzer.Type {
+func (terraformConfigAnalyzer) Type() analyzer.Type {
 	return analyzer.TypeTerraform
 }
 
-func (ConfigAnalyzer) Version() int {
+func (terraformConfigAnalyzer) Version() int {
 	return version
 }

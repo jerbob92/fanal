@@ -1,16 +1,14 @@
-package hcl_test
+package hcl
 
 import (
 	"context"
 	"os"
-	"regexp"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/aquasecurity/fanal/analyzer"
-	"github.com/aquasecurity/fanal/analyzer/config/hcl"
 	"github.com/aquasecurity/fanal/types"
 )
 
@@ -115,7 +113,7 @@ func TestConfigAnalyzer_Analyze(t *testing.T) {
 			require.NoError(t, err)
 			defer f.Close()
 
-			a := hcl.NewConfigAnalyzer(nil)
+			a := &hclConfigAnalyzer{}
 			require.NoError(t, err)
 			ctx := context.Background()
 			got, err := a.Analyze(ctx, analyzer.AnalysisInput{
@@ -136,10 +134,9 @@ func TestConfigAnalyzer_Analyze(t *testing.T) {
 
 func TestConfigAnalyzer_Required(t *testing.T) {
 	tests := []struct {
-		name        string
-		filePattern *regexp.Regexp
-		filePath    string
-		want        bool
+		name     string
+		filePath string
+		want     bool
 	}{
 		{
 			name:     "hcl",
@@ -161,23 +158,17 @@ func TestConfigAnalyzer_Required(t *testing.T) {
 			filePath: "deployment.json",
 			want:     false,
 		},
-		{
-			name:        "file pattern",
-			filePattern: regexp.MustCompile(`foo*`),
-			filePath:    "foo_file",
-			want:        true,
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := hcl.NewConfigAnalyzer(tt.filePattern)
+			s := &hclConfigAnalyzer{}
 			got := s.Required(tt.filePath, nil)
 			assert.Equal(t, tt.want, got)
 		})
 	}
 }
 func TestConfigAnalyzer_Type(t *testing.T) {
-	s := hcl.NewConfigAnalyzer(nil)
+	s := &hclConfigAnalyzer{}
 	want := analyzer.TypeHCL
 	got := s.Type()
 	assert.Equal(t, want, got)
