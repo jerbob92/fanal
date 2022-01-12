@@ -175,6 +175,7 @@ func NewAnalyzerGroup(groupName Group, disabledAnalyzers []Type, filePatterns []
 		if len(s) != 2 {
 			return group, xerrors.Errorf("invalid file pattern (%s)", p)
 		}
+
 		fileType, pattern := s[0], s[1]
 		r, err := regexp.Compile(pattern)
 		if err != nil {

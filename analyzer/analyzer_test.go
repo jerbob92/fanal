@@ -346,12 +346,26 @@ func TestAnalyzeFile(t *testing.T) {
 			want: &analyzer.AnalysisResult{},
 		},
 		{
-			name: "sad path with opener error",
+			name: "happy path with library analyzer file pattern regex",
 			args: args{
-				filePath:     "/lib/apk/db/installed",
-				testFilePath: "testdata/error",
+				filePath:     "/app/Gemfile-dev.lock",
+				testFilePath: "testdata/app/Gemfile.lock",
+				filePatterns: []string{"bundler:Gemfile(-.*)?\\.lock"},
 			},
-			wantErr: "unable to open /lib/apk/db/installed",
+			want: &analyzer.AnalysisResult{
+				Applications: []types.Application{
+					{
+						Type:     "bundler",
+						FilePath: "/app/Gemfile-dev.lock",
+						Libraries: []types.Package{
+							{
+								Name:    "actioncable",
+								Version: "5.2.3",
+							},
+						},
+					},
+				},
+			},
 		},
 		{
 			name: "happy path with library analyzer file pattern",
@@ -375,6 +389,32 @@ func TestAnalyzeFile(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "sad path with opener error",
+			args: args{
+				filePath:     "/lib/apk/db/installed",
+				testFilePath: "testdata/error",
+			},
+			wantErr: "unable to open /lib/apk/db/installed",
+		},
+		{
+			name: "sad path with broken file pattern regex",
+			args: args{
+				filePath:     "/app/Gemfile-dev.lock",
+				testFilePath: "testdata/app/Gemfile.lock",
+				filePatterns: []string{"bundler:Gemfile(-.*?\\.lock"},
+			},
+			wantErr: "error parsing regexp",
+		},
+		{
+			name: "sad path with broken file pattern",
+			args: args{
+				filePath:     "/app/Gemfile-dev.lock",
+				testFilePath: "testdata/app/Gemfile.lock",
+				filePatterns: []string{"Gemfile(-.*)?\\.lock"},
+			},
+			wantErr: "invalid file pattern",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -383,6 +423,11 @@ func TestAnalyzeFile(t *testing.T) {
 
 			got := new(analyzer.AnalysisResult)
 			a, err := analyzer.NewAnalyzerGroup(analyzer.GroupBuiltin, tt.args.disabledAnalyzers, tt.args.filePatterns)
+			if err != nil && tt.wantErr != "" {
+				require.NotNil(t, err)
+				assert.Contains(t, err.Error(), tt.wantErr)
+				return
+			}
 			require.NoError(t, err)
 
 			info, err := os.Stat(tt.args.testFilePath)
