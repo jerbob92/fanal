@@ -368,28 +368,6 @@ func TestAnalyzeFile(t *testing.T) {
 			},
 		},
 		{
-			name: "happy path with library analyzer file pattern",
-			args: args{
-				filePath:     "/app/Gemfile-dev.lock",
-				testFilePath: "testdata/app/Gemfile.lock",
-				filePatterns: []string{"bundler:Gemfile(-.*)?\\.lock"},
-			},
-			want: &analyzer.AnalysisResult{
-				Applications: []types.Application{
-					{
-						Type:     "bundler",
-						FilePath: "/app/Gemfile-dev.lock",
-						Libraries: []types.Package{
-							{
-								Name:    "actioncable",
-								Version: "5.2.3",
-							},
-						},
-					},
-				},
-			},
-		},
-		{
 			name: "sad path with opener error",
 			args: args{
 				filePath:     "/lib/apk/db/installed",
