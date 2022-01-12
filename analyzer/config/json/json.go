@@ -3,9 +3,10 @@ package json
 import (
 	"context"
 	"encoding/json"
-	"golang.org/x/xerrors"
 	"os"
 	"path/filepath"
+
+	"golang.org/x/xerrors"
 
 	"github.com/aquasecurity/fanal/analyzer"
 	"github.com/aquasecurity/fanal/types"

@@ -2,9 +2,10 @@ package toml
 
 import (
 	"context"
-	"golang.org/x/xerrors"
 	"os"
 	"path/filepath"
+
+	"golang.org/x/xerrors"
 
 	"github.com/BurntSushi/toml"
 	"github.com/aquasecurity/fanal/analyzer"

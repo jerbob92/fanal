@@ -2,10 +2,11 @@ package yaml
 
 import (
 	"context"
-	"golang.org/x/xerrors"
 	"io"
 	"os"
 	"path/filepath"
+
+	"golang.org/x/xerrors"
 
 	"github.com/aquasecurity/fanal/analyzer"
 	"github.com/aquasecurity/fanal/config/parser/yaml"
