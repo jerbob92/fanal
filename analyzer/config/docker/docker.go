@@ -2,7 +2,6 @@ package docker
 
 import (
 	"context"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -29,8 +28,6 @@ type dockerConfigAnalyzer struct {
 }
 
 func (s dockerConfigAnalyzer) Analyze(_ context.Context, input analyzer.AnalysisInput) (*analyzer.AnalysisResult, error) {
-	log.Println(input.FilePath)
-	log.Println(input.Dir)
 	parsed, err := s.parser.Parse(input.Content)
 	if err != nil {
 		return nil, xerrors.Errorf("unable to parse Dockerfile (%s): %w", input.FilePath, err)

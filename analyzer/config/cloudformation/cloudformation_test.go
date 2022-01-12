@@ -116,7 +116,7 @@ spec:
        "bar", 
        "baa"
     ]
-}hcl.NewConfigAnalyzer
+}
 `),
 			filePath: "random.yaml",
 			want:     0,

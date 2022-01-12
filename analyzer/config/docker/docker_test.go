@@ -2,7 +2,6 @@ package docker
 
 import (
 	"context"
-	"github.com/aquasecurity/fanal/config/parser/dockerfile"
 	"os"
 	"testing"
 
@@ -10,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/aquasecurity/fanal/analyzer"
+	"github.com/aquasecurity/fanal/config/parser/dockerfile"
 	"github.com/aquasecurity/fanal/types"
 )
 
