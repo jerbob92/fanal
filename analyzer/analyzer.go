@@ -238,10 +238,11 @@ func (ag AnalyzerGroup) AnalyzeFile(ctx context.Context, wg *sync.WaitGroup, lim
 	if info.IsDir() {
 		return nil
 	}
-	for _, a := range ag.analyzers {
-		// filepath extracted from tar file doesn't have the prefix "/"
-		cleanPath := strings.TrimLeft(filePath, "/")
 
+	// filepath extracted from tar file doesn't have the prefix "/"
+	cleanPath := strings.TrimLeft(filePath, "/")
+
+	for _, a := range ag.analyzers {
 		filePatternMatch := false
 		for _, pattern := range ag.filePatterns[a.Type()] {
 			if pattern.MatchString(cleanPath) {
