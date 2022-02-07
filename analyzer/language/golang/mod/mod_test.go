@@ -22,26 +22,28 @@ func Test_gomodAnalyzer_Analyze(t *testing.T) {
 	}{
 		{
 			name:      "happy path",
-			inputFile: "testdata/gomod_many.sum",
+			inputFile: "testdata/gomod_many.mod",
 			want: &analyzer.AnalysisResult{
 				Applications: []types.Application{
 					{
 						Type:     types.GoMod,
-						FilePath: "testdata/gomod_many.sum",
+						FilePath: "testdata/gomod_many.mod",
 						Libraries: []types.Package{
-							{Name: "github.com/BurntSushi/toml", Version: "0.3.1"},
-							{Name: "github.com/cpuguy83/go-md2man/v2", Version: "2.0.0-20190314233015-f79a8a8ca69d"},
-							{Name: "github.com/davecgh/go-spew", Version: "1.1.0"},
+							{Name: "github.com/BurntSushi/toml", Version: "1.0.0"},
+							{Name: "github.com/cpuguy83/go-md2man/v2", Version: "2.0.1"},
+							{Name: "github.com/davecgh/go-spew", Version: "1.1.1"},
+							{Name: "github.com/kr/pretty", Version: "0.2.1"},
+							{Name: "github.com/kr/text", Version: "0.1.0"},
 							{Name: "github.com/pmezard/go-difflib", Version: "1.0.0"},
-							{Name: "github.com/russross/blackfriday/v2", Version: "2.0.1"},
+							{Name: "github.com/russross/blackfriday/v2", Version: "2.1.0"},
 							{Name: "github.com/shurcooL/sanitized_anchor_name", Version: "1.0.0"},
-							{Name: "github.com/stretchr/objx", Version: "0.1.0"},
+							{Name: "github.com/stretchr/objx", Version: "0.3.0"},
 							{Name: "github.com/stretchr/testify", Version: "1.7.0"},
 							{Name: "github.com/urfave/cli", Version: "1.22.5"},
 							{Name: "golang.org/x/xerrors", Version: "0.0.0-20200804184101-5ec99f83aff1"},
-							{Name: "gopkg.in/check.v1", Version: "0.0.0-20161208181325-20d25e280405"},
-							{Name: "gopkg.in/yaml.v2", Version: "2.2.2"},
-							{Name: "gopkg.in/yaml.v3", Version: "3.0.0-20200313102051-9f266ea9e77c"},
+							{Name: "gopkg.in/check.v1", Version: "1.0.0-20201130134442-10cb98267c6c"},
+							{Name: "gopkg.in/yaml.v2", Version: "2.4.0"},
+							{Name: "gopkg.in/yaml.v3", Version: "3.0.0-20210107192922-496545a6307b"},
 						},
 					},
 				},
@@ -92,12 +94,12 @@ func Test_gomodAnalyzer_Required(t *testing.T) {
 	}{
 		{
 			name:     "happy",
-			filePath: "test/go.sum",
+			filePath: "test/go.mod",
 			want:     true,
 		},
 		{
 			name:     "sad",
-			filePath: "a/b/c/d/test.sum",
+			filePath: "a/b/c/d/test.mod",
 			want:     false,
 		},
 	}
