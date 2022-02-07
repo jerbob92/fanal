@@ -17,6 +17,7 @@ type Option struct {
 	SkipDirs          []string
 	FilePatterns      []string
 	Quiet             bool
+	NoProgress        bool
 	Offline           bool
 	InsecureSkipTLS   bool
 }

@@ -14,11 +14,16 @@ import (
 	"golang.org/x/xerrors"
 
 	"github.com/aquasecurity/fanal/analyzer"
-	_ "github.com/aquasecurity/fanal/analyzer/all"
 	aos "github.com/aquasecurity/fanal/analyzer/os"
-	_ "github.com/aquasecurity/fanal/hook/all"
 	"github.com/aquasecurity/fanal/types"
 	dio "github.com/aquasecurity/go-dep-parser/pkg/io"
+
+	_ "github.com/aquasecurity/fanal/analyzer/command/apk"
+	_ "github.com/aquasecurity/fanal/analyzer/language/ruby/bundler"
+	_ "github.com/aquasecurity/fanal/analyzer/os/alpine"
+	_ "github.com/aquasecurity/fanal/analyzer/os/ubuntu"
+	_ "github.com/aquasecurity/fanal/analyzer/pkg/apk"
+	_ "github.com/aquasecurity/fanal/hook/all"
 )
 
 type mockConfigAnalyzer struct{}
@@ -503,10 +508,7 @@ func TestAnalyzer_AnalyzerVersions(t *testing.T) {
 			name:     "happy path",
 			disabled: []analyzer.Type{},
 			want: map[string]int{
-				"alpine":         1,
 				"amazon":         1,
-				"apk":            1,
-				"bundler":        1,
 				"cargo":          1,
 				"centos":         1,
 				"cloudFormation": 1,
@@ -536,11 +538,14 @@ func TestAnalyzer_AnalyzerVersions(t *testing.T) {
 				"suse":           1,
 				"terraform":      1,
 				"toml":           1,
-				"ubuntu":         1,
 				"yaml":           1,
 				"yarn":           1,
 				"python-pkg":     1,
 				"gemspec":        1,
+				"alpine":         1,
+				"apk":            1,
+				"bundler":        1,
+				"ubuntu":         1,
 			},
 		},
 		{
@@ -548,8 +553,6 @@ func TestAnalyzer_AnalyzerVersions(t *testing.T) {
 			disabled: []analyzer.Type{analyzer.TypeAlpine, analyzer.TypeUbuntu},
 			want: map[string]int{
 				"amazon":         1,
-				"apk":            1,
-				"bundler":        1,
 				"cargo":          1,
 				"centos":         1,
 				"cloudFormation": 1,
@@ -583,6 +586,8 @@ func TestAnalyzer_AnalyzerVersions(t *testing.T) {
 				"yarn":           1,
 				"python-pkg":     1,
 				"gemspec":        1,
+				"apk":            1,
+				"bundler":        1,
 			},
 		},
 	}

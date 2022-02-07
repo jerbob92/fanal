@@ -1,6 +1,7 @@
 package all
 
 import (
+	_ "github.com/aquasecurity/fanal/analyzer/buildinfo"
 	_ "github.com/aquasecurity/fanal/analyzer/command/apk"
 	_ "github.com/aquasecurity/fanal/analyzer/config/cloudformation"
 	_ "github.com/aquasecurity/fanal/analyzer/config/docker"
@@ -28,6 +29,7 @@ import (
 	_ "github.com/aquasecurity/fanal/analyzer/os/alpine"
 	_ "github.com/aquasecurity/fanal/analyzer/os/amazonlinux"
 	_ "github.com/aquasecurity/fanal/analyzer/os/debian"
+	_ "github.com/aquasecurity/fanal/analyzer/os/mariner"
 	_ "github.com/aquasecurity/fanal/analyzer/os/photon"
 	_ "github.com/aquasecurity/fanal/analyzer/os/redhatbase"
 	_ "github.com/aquasecurity/fanal/analyzer/os/suse"
