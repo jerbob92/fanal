@@ -47,14 +47,14 @@ func NewArtifact(img types.Image, c cache.ArtifactCache, opt artifact.Option) (a
 		return nil, xerrors.Errorf("scanner init error: %w", err)
 	}
 
-	a, err := analyzer.NewAnalyzerGroup(opt.AnalyzerGroup, opt.DisabledAnalyzers, opt.FilePatterns)
-	if err != nil {
-		return nil, xerrors.Errorf("analyzer group error: %w", err)
-	}
-
 	// Register secret analyzer
 	if err = secret.RegisterSecretAnalyzer(opt.SecretScannerOption); err != nil {
 		return nil, xerrors.Errorf("secret scanner error: %w", err)
+	}
+
+	a, err := analyzer.NewAnalyzerGroup(opt.AnalyzerGroup, opt.DisabledAnalyzers, opt.FilePatterns)
+	if err != nil {
+		return nil, xerrors.Errorf("analyzer group error: %w", err)
 	}
 
 	return Artifact{
