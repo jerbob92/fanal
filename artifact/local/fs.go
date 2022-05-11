@@ -14,7 +14,7 @@ import (
 	"golang.org/x/xerrors"
 
 	"github.com/aquasecurity/fanal/analyzer"
-	"github.com/aquasecurity/fanal/analyzer/config"
+	"github.com/aquasecurity/fanal/analyzer/secret"
 	"github.com/aquasecurity/fanal/artifact"
 	"github.com/aquasecurity/fanal/cache"
 	"github.com/aquasecurity/fanal/config/scanner"
@@ -35,31 +35,35 @@ type Artifact struct {
 	hookManager hook.Manager
 	scanner     scanner.Scanner
 
-	artifactOption      artifact.Option
-	configScannerOption config.ScannerOption
+	artifactOption artifact.Option
 }
 
-func NewArtifact(rootPath string, c cache.ArtifactCache, artifactOpt artifact.Option, scannerOpt config.ScannerOption) (artifact.Artifact, error) {
-	s, err := scanner.New(rootPath, scannerOpt.Namespaces, scannerOpt.PolicyPaths, scannerOpt.DataPaths, scannerOpt.Trace)
+func NewArtifact(rootPath string, c cache.ArtifactCache, opt artifact.Option) (artifact.Artifact, error) {
+	s, err := scanner.New(rootPath, opt.MisconfScannerOption.Namespaces, opt.MisconfScannerOption.PolicyPaths,
+		opt.MisconfScannerOption.DataPaths, opt.MisconfScannerOption.Trace)
 	if err != nil {
 		return nil, xerrors.Errorf("scanner error: %w", err)
 	}
 
-	a, err := analyzer.NewAnalyzerGroup(artifactOpt.AnalyzerGroup, artifactOpt.DisabledAnalyzers, artifactOpt.FilePatterns)
+	a, err := analyzer.NewAnalyzerGroup(opt.AnalyzerGroup, opt.DisabledAnalyzers, opt.FilePatterns)
 	if err != nil {
-		return nil, xerrors.Errorf("scanner error: %w", err)
+		return nil, xerrors.Errorf("analyzer group error: %w", err)
+	}
+
+	// Register secret analyzer
+	if err = secret.RegisterSecretAnalyzer(opt.SecretScannerOption); err != nil {
+		return nil, xerrors.Errorf("secret scanner error: %w", err)
 	}
 
 	return Artifact{
 		rootPath:    filepath.Clean(rootPath),
 		cache:       c,
-		walker:      walker.NewFS(buildAbsPaths(rootPath, artifactOpt.SkipFiles), buildAbsPaths(rootPath, artifactOpt.SkipDirs)),
+		walker:      walker.NewFS(buildAbsPaths(rootPath, opt.SkipFiles), buildAbsPaths(rootPath, opt.SkipDirs)),
 		analyzer:    a,
-		hookManager: hook.NewManager(artifactOpt.DisabledHooks),
+		hookManager: hook.NewManager(opt.DisabledHooks),
 		scanner:     s,
 
-		artifactOption:      artifactOpt,
-		configScannerOption: scannerOpt,
+		artifactOption: opt,
 	}, nil
 }
 
@@ -96,7 +100,7 @@ func (a Artifact) Inspect(ctx context.Context) (types.ArtifactReference, error) 
 		}
 
 		opts := analyzer.AnalysisOptions{Offline: a.artifactOption.Offline}
-		if err = a.analyzer.AnalyzeFile(ctx, &wg, limit, result, directory, filePath, info, opener, opts); err != nil {
+		if err = a.analyzer.AnalyzeFile(ctx, &wg, limit, result, directory, filePath, info, opener, nil, opts); err != nil {
 			return xerrors.Errorf("analyze file (%s): %w", filePath, err)
 		}
 		return nil
@@ -120,9 +124,11 @@ func (a Artifact) Inspect(ctx context.Context) (types.ArtifactReference, error) 
 	blobInfo := types.BlobInfo{
 		SchemaVersion:     types.BlobJSONSchemaVersion,
 		OS:                result.OS,
+		Repository:        result.Repository,
 		PackageInfos:      result.PackageInfos,
 		Applications:      result.Applications,
 		Misconfigurations: misconfs,
+		Secrets:           result.Secrets,
 		SystemFiles:       result.SystemInstalledFiles,
 	}
 
@@ -139,8 +145,7 @@ func (a Artifact) Inspect(ctx context.Context) (types.ArtifactReference, error) 
 	d := digest.NewDigest(digest.SHA256, h)
 	diffID := d.String()
 	blobInfo.DiffID = diffID
-	cacheKey, err := cache.CalcKey(diffID, a.analyzer.AnalyzerVersions(), a.hookManager.Versions(),
-		a.artifactOption, a.configScannerOption)
+	cacheKey, err := cache.CalcKey(diffID, a.analyzer.AnalyzerVersions(), a.hookManager.Versions(), a.artifactOption)
 	if err != nil {
 		return types.ArtifactReference{}, xerrors.Errorf("cache key: %w", err)
 	}

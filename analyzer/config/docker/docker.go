@@ -21,7 +21,7 @@ func init() {
 
 const version = 1
 
-var requiredFile = "Dockerfile"
+var requiredFiles = []string{"Dockerfile", "Containerfile"}
 
 type dockerConfigAnalyzer struct {
 	parser *dockerfile.Parser
@@ -45,15 +45,17 @@ func (s dockerConfigAnalyzer) Analyze(_ context.Context, input analyzer.Analysis
 }
 
 // Required does a case-insensitive check for filePath and returns true if
-// filePath equals/startsWith/hasExtension requiredFile
+// filePath equals/startsWith/hasExtension requiredFiles
 func (s dockerConfigAnalyzer) Required(filePath string, _ os.FileInfo) bool {
 	base := filepath.Base(filePath)
 	ext := filepath.Ext(base)
-	if strings.EqualFold(base, requiredFile+ext) {
-		return true
-	}
-	if strings.EqualFold(ext, "."+requiredFile) {
-		return true
+	for _, file := range requiredFiles {
+		if strings.EqualFold(base, file+ext) {
+			return true
+		}
+		if strings.EqualFold(ext, "."+file) {
+			return true
+		}
 	}
 
 	return false

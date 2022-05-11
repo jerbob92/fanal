@@ -161,12 +161,13 @@ func TestCalcKey(t *testing.T) {
 				SkipFiles:    tt.args.skipFiles,
 				SkipDirs:     tt.args.skipDirs,
 				FilePatterns: tt.args.patterns,
+
+				MisconfScannerOption: config.ScannerOption{
+					PolicyPaths: tt.args.policy,
+					DataPaths:   tt.args.data,
+				},
 			}
-			scannerOpt := config.ScannerOption{
-				PolicyPaths: tt.args.policy,
-				DataPaths:   tt.args.data,
-			}
-			got, err := CalcKey(tt.args.key, tt.args.analyzerVersions, tt.args.hookVersions, artifactOpt, scannerOpt)
+			got, err := CalcKey(tt.args.key, tt.args.analyzerVersions, tt.args.hookVersions, artifactOpt)
 			if tt.wantErr != "" {
 				require.Error(t, err)
 				assert.Contains(t, err.Error(), tt.wantErr)

@@ -94,7 +94,7 @@ func (s Scanner) ScanConfigs(ctx context.Context, files []types.Config) ([]types
 	misconfs = append(misconfs, results...)
 
 	// Scan CloudFormation files by CFSec
-	results, err = s.scanCloudFormation(cfFiles)
+	results, err = s.scanCloudFormation(ctx, cfFiles)
 	if err != nil {
 		return nil, xerrors.Errorf("scan cloudformation error: %w", err)
 	}
@@ -130,7 +130,7 @@ func (s Scanner) scanConfigsByRego(ctx context.Context, files []types.Config) ([
 	return misconfs, nil
 }
 
-func (s Scanner) scanCloudFormation(files []types.Config) ([]types.Misconfiguration, error) {
+func (s Scanner) scanCloudFormation(ctx context.Context, files []types.Config) ([]types.Misconfiguration, error) {
 	if len(files) == 0 {
 		return nil, nil
 	}
@@ -148,7 +148,7 @@ func (s Scanner) scanCloudFormation(files []types.Config) ([]types.Misconfigurat
 		}
 	}
 
-	results, err := s.cfScanner.Scan()
+	results, err := s.cfScanner.Scan(ctx)
 	if err != nil {
 		return nil, xerrors.Errorf("cloudformation scan error: %w", err)
 	}
@@ -175,10 +175,12 @@ func (s Scanner) scanCloudFormation(files []types.Config) ([]types.Misconfigurat
 			},
 		}
 
-		filename := flattened.Location.Filename
-		filePath, err := filepath.Rel(rootDir, filename)
-		if err != nil {
-			return nil, xerrors.Errorf("filepath rel, root: [%s], result: [%s] %w", rootDir, filename, err)
+		var filePath = "unknown"
+		if flattened.Location.Filename != "" {
+			filePath, err = filepath.Rel(rootDir, flattened.Location.Filename)
+			if err != nil {
+				return nil, xerrors.Errorf("filepath rel, root: [%s], result: [%s] %w", rootDir, flattened.Location.Filename, err)
+			}
 		}
 
 		misconf, ok := misConfs[filePath]
@@ -244,9 +246,13 @@ func (s Scanner) scanTerraform(files []types.Config) ([]types.Misconfiguration, 
 				EndLine:   flattened.Location.EndLine,
 			},
 		}
-		filePath, err := filepath.Rel(rootDir, flattened.Location.Filename)
-		if err != nil {
-			return nil, xerrors.Errorf("filepath rel: %w", err)
+
+		var filePath = "unknown"
+		if flattened.Location.Filename != "" {
+			filePath, err = filepath.Rel(rootDir, flattened.Location.Filename)
+			if err != nil {
+				return nil, xerrors.Errorf("filepath rel, root: [%s], result: [%s] %w", rootDir, flattened.Location.Filename, err)
+			}
 		}
 
 		misconf, ok := misconfs[filePath]

@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"github.com/aquasecurity/fanal/analyzer/config"
 	"github.com/aquasecurity/fanal/artifact"
 	"github.com/aquasecurity/fanal/artifact/local"
 	"github.com/aquasecurity/fanal/cache"
@@ -28,7 +27,7 @@ func parse() error {
 		FilePatterns: []string{
 			"dockerfile:(?i)^((.*[\\.])?Dockerfile|Dockerfile([-\\.].*)?)$",
 		},
-	}, config.ScannerOption{})
+	})
 	if err != nil {
 		log.Fatalln(err)
 	}
