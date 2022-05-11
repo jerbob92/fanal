@@ -19,3 +19,5 @@ test/integration/testdata/fixtures
 *.gz
 
 /fanal
+
+/ignore
