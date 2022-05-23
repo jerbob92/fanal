@@ -3,7 +3,6 @@ package dockerfile
 import (
 	"context"
 	"os"
-	"regexp"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -87,10 +86,9 @@ COPY --from=build /bar /bar
 
 func Test_dockerConfigAnalyzer_Required(t *testing.T) {
 	tests := []struct {
-		name        string
-		filePattern *regexp.Regexp
-		filePath    string
-		want        bool
+		name     string
+		filePath string
+		want     bool
 	}{
 		{
 			name:     "dockerfile",
@@ -141,12 +139,6 @@ func Test_dockerConfigAnalyzer_Required(t *testing.T) {
 			name:     "json",
 			filePath: "deployment.json",
 			want:     false,
-		},
-		{
-			name:        "file pattern",
-			filePattern: regexp.MustCompile(`foo*`),
-			filePath:    "foo_file",
-			want:        true,
 		},
 	}
 	for _, tt := range tests {

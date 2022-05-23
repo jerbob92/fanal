@@ -19,6 +19,10 @@ import (
 	"github.com/aquasecurity/fanal/types"
 
 	_ "github.com/aquasecurity/fanal/analyzer/command/apk"
+	_ "github.com/aquasecurity/fanal/analyzer/config/dockerfile"
+	_ "github.com/aquasecurity/fanal/analyzer/config/json"
+	_ "github.com/aquasecurity/fanal/analyzer/config/terraform"
+	_ "github.com/aquasecurity/fanal/analyzer/config/yaml"
 	_ "github.com/aquasecurity/fanal/analyzer/language/php/composer"
 	_ "github.com/aquasecurity/fanal/analyzer/language/ruby/bundler"
 	_ "github.com/aquasecurity/fanal/analyzer/os/alpine"
