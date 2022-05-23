@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/aquasecurity/fanal/analyzer"
-	"github.com/aquasecurity/fanal/config/parser/yaml"
 	"github.com/aquasecurity/fanal/types"
 )
 
@@ -33,19 +32,18 @@ func Test_yamlConfigAnalyzer_Analyze(t *testing.T) {
 			},
 			inputFile: "testdata/deployment.yaml",
 			want: &analyzer.AnalysisResult{
-				Configs: []types.Config{
-					{
-						Type:     "yaml",
-						FilePath: "testdata/deployment.yaml",
-						Content: map[string]interface{}{
-							"apiVersion": "apps/v1",
-							"kind":       "Deployment",
-							"metadata": map[string]interface{}{
-								"name": "hello-kubernetes",
-							},
-							"spec": map[string]interface{}{
-								"replicas": float64(3),
-							},
+				Files: map[types.HandlerType][]types.File{
+					types.MisconfPostHandler: {
+						{
+							Type: "yaml",
+							Path: "testdata/deployment.yaml",
+							Content: []byte(`apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-kubernetes
+spec:
+  replicas: 3
+`),
 						},
 					},
 				},
@@ -61,19 +59,19 @@ func Test_yamlConfigAnalyzer_Analyze(t *testing.T) {
 			want: &analyzer.AnalysisResult{
 				OS:           (*types.OS)(nil),
 				PackageInfos: []types.PackageInfo(nil),
-				Applications: []types.Application(nil), Configs: []types.Config{
-					{
-						Type:     "yaml",
-						FilePath: "testdata/deployment_deny.yaml",
-						Content: map[string]interface{}{
-							"apiVersion": "apps/v1",
-							"kind":       "Deployment",
-							"metadata": map[string]interface{}{
-								"name": "hello-kubernetes",
-							},
-							"spec": map[string]interface{}{
-								"replicas": float64(4),
-							},
+				Applications: []types.Application(nil),
+				Files: map[types.HandlerType][]types.File{
+					types.MisconfPostHandler: {
+						{
+							Type: "yaml",
+							Path: "testdata/deployment_deny.yaml",
+							Content: []byte(`apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-kubernetes
+spec:
+  replicas: 4
+`),
 						},
 					},
 				},
@@ -90,28 +88,27 @@ func Test_yamlConfigAnalyzer_Analyze(t *testing.T) {
 				OS:           (*types.OS)(nil),
 				PackageInfos: []types.PackageInfo(nil),
 				Applications: []types.Application(nil),
-				Configs: []types.Config{
-					{
-						Type:     "yaml",
-						FilePath: "testdata/anchor.yaml",
-						Content: map[string]interface{}{
-							"default": map[string]interface{}{
-								"line": "single line",
-							},
-							"fred": map[string]interface{}{
-								"fred_name": "fred",
-							},
-							"john": map[string]interface{}{
-								"john_name": "john",
-							},
-							"main": map[string]interface{}{
-								"comment": "multi\nline\n",
-								"line":    "single line",
-								"name": map[string]interface{}{
-									"fred_name": "fred",
-									"john_name": "john",
-								},
-							},
+				Files: map[types.HandlerType][]types.File{
+					types.MisconfPostHandler: {
+						{
+							Type: "yaml",
+							Path: "testdata/anchor.yaml",
+							Content: []byte(`default: &default
+  line: single line
+
+john: &J
+  john_name: john
+fred: &F
+  fred_name: fred
+
+main:
+  <<: *default
+  name:
+    <<: [*J, *F]
+  comment: |
+    multi
+    line
+`),
 						},
 					},
 				},
@@ -128,86 +125,34 @@ func Test_yamlConfigAnalyzer_Analyze(t *testing.T) {
 				OS:           (*types.OS)(nil),
 				PackageInfos: []types.PackageInfo(nil),
 				Applications: []types.Application(nil),
-				Configs: []types.Config{
-					{
-						Type:     "yaml",
-						FilePath: "testdata/multiple.yaml",
-						Content: map[string]interface{}{
-							"apiVersion": "apps/v1",
-							"kind":       "Deployment",
-							"metadata": map[string]interface{}{
-								"name": "hello-kubernetes",
-							},
-							"spec": map[string]interface{}{
-								"replicas": float64(4),
-							},
-						},
-					},
-					{
-						Type:     "yaml",
-						FilePath: "testdata/multiple.yaml",
-						Content: map[string]interface{}{
-							"apiVersion": "v1",
-							"kind":       "Service",
-							"metadata": map[string]interface{}{
-								"name": "hello-kubernetes",
-							},
-							"spec": map[string]interface{}{
-								"ports": []interface{}{map[string]interface{}{
-									"port":       float64(80),
-									"protocol":   "TCP",
-									"targetPort": float64(8080),
-								},
-								},
-							},
+				Files: map[types.HandlerType][]types.File{
+					types.MisconfPostHandler: {
+						{
+							Type: "yaml",
+							Path: "testdata/multiple.yaml",
+							Content: []byte(`apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-kubernetes
+spec:
+  replicas: 4
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello-kubernetes
+spec:
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+`),
 						},
 					},
 				},
 			},
-		},
-		{
-			name: "happy with yaml which incompatible with json spec",
-			args: args{
-				namespaces:  []string{"main"},
-				policyPaths: []string{"testdata/deny.rego"},
-			},
-			inputFile: "testdata/incompatible_json.yaml",
-			want: &analyzer.AnalysisResult{
-				OS:           (*types.OS)(nil),
-				PackageInfos: []types.PackageInfo(nil),
-				Applications: []types.Application(nil),
-				Configs: []types.Config{
-					{
-						Type:     "yaml",
-						FilePath: "testdata/incompatible_json.yaml",
-						Content: map[string]interface{}{
-							"replacements": map[string]interface{}{
-								"amd64": "64bit",
-								"386":   "32bit",
-								"arm":   "ARM",
-							},
-						},
-					},
-				},
-			},
-		},
-		{
-			name: "broken YAML",
-			args: args{
-				namespaces:  []string{"main"},
-				policyPaths: []string{"../testdata/kubernetes.rego"},
-			},
-			inputFile: "testdata/broken.yaml",
-			wantErr:   "unmarshal yaml",
-		},
-		{
-			name: "invalid circular references yaml",
-			args: args{
-				namespaces:  []string{"main"},
-				policyPaths: []string{"../testdata/kubernetes.rego"},
-			},
-			inputFile: "testdata/circular_references.yaml",
-			wantErr:   "yaml: anchor 'circular' value contains itself",
 		},
 	}
 	for _, tt := range tests {
@@ -216,9 +161,7 @@ func Test_yamlConfigAnalyzer_Analyze(t *testing.T) {
 			require.NoError(t, err)
 			defer f.Close()
 
-			a := &yamlConfigAnalyzer{
-				parser: &yaml.Parser{},
-			}
+			a := &yamlConfigAnalyzer{}
 			ctx := context.Background()
 			got, err := a.Analyze(ctx, analyzer.AnalysisInput{
 				FilePath: tt.inputFile,
@@ -260,9 +203,7 @@ func Test_yamlConfigAnalyzer_Required(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := &yamlConfigAnalyzer{
-				parser: &yaml.Parser{},
-			}
+			s := &yamlConfigAnalyzer{}
 
 			got := s.Required(tt.filePath, nil)
 			assert.Equal(t, tt.want, got)
@@ -271,9 +212,7 @@ func Test_yamlConfigAnalyzer_Required(t *testing.T) {
 }
 
 func Test_yamlConfigAnalyzer_Type(t *testing.T) {
-	s := &yamlConfigAnalyzer{
-		parser: &yaml.Parser{},
-	}
+	s := &yamlConfigAnalyzer{}
 
 	want := analyzer.TypeYaml
 	got := s.Type()

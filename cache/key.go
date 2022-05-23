@@ -18,7 +18,7 @@ func CalcKey(id string, analyzerVersions, hookVersions map[string]int, artifactO
 
 	h := sha256.New()
 
-	// Write ID, analyzer/hook versions, skipped files/dirs and file patterns
+	// Write ID, analyzer/handler versions, skipped files/dirs and file patterns
 	keyBase := struct {
 		ID               string
 		AnalyzerVersions map[string]int

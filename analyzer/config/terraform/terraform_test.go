@@ -1,6 +1,7 @@
 package terraform
 
 import (
+	"bytes"
 	"context"
 	"testing"
 
@@ -22,12 +23,16 @@ func TestConfigAnalyzer_Analyze(t *testing.T) {
 			input: analyzer.AnalysisInput{
 				Dir:      "path/to/",
 				FilePath: "main.tf",
+				Content:  bytes.NewReader(nil),
 			},
 			want: &analyzer.AnalysisResult{
-				Configs: []types.Config{
-					{
-						Type:     types.Terraform,
-						FilePath: "path/to/main.tf",
+				Files: map[types.HandlerType][]types.File{
+					types.MisconfPostHandler: {
+						{
+							Type:    types.Terraform,
+							Path:    "main.tf",
+							Content: []byte{},
+						},
 					},
 				},
 			},

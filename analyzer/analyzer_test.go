@@ -19,7 +19,7 @@ import (
 	dio "github.com/aquasecurity/go-dep-parser/pkg/io"
 
 	_ "github.com/aquasecurity/fanal/analyzer/all"
-	_ "github.com/aquasecurity/fanal/hook/all"
+	_ "github.com/aquasecurity/fanal/handler/all"
 )
 
 type mockConfigAnalyzer struct{}

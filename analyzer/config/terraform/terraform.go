@@ -2,8 +2,12 @@ package terraform
 
 import (
 	"context"
+	"io"
 	"os"
 	"path/filepath"
+
+	"golang.org/x/exp/slices"
+	"golang.org/x/xerrors"
 
 	"github.com/aquasecurity/fanal/analyzer"
 	"github.com/aquasecurity/fanal/types"
@@ -15,24 +19,32 @@ func init() {
 
 const version = 1
 
-const requiredExt = ".tf"
+var requiredExts = []string{".tf", ".tf.json"}
 
 type terraformConfigAnalyzer struct{}
 
 // Analyze returns a name of Terraform file
 func (a terraformConfigAnalyzer) Analyze(_ context.Context, input analyzer.AnalysisInput) (*analyzer.AnalysisResult, error) {
+	b, err := io.ReadAll(input.Content)
+	if err != nil {
+		return nil, xerrors.Errorf("read error (%s): %w", input.FilePath, err)
+	}
 	return &analyzer.AnalysisResult{
-		Configs: []types.Config{
-			{
-				Type:     types.Terraform,
-				FilePath: filepath.Join(input.Dir, input.FilePath), // tfsec requires a path from working dir
+		Files: map[types.HandlerType][]types.File{
+			// It will be passed to misconf post handler
+			types.MisconfPostHandler: {
+				{
+					Type:    types.Terraform,
+					Path:    input.FilePath,
+					Content: b,
+				},
 			},
 		},
 	}, nil
 }
 
 func (a terraformConfigAnalyzer) Required(filePath string, _ os.FileInfo) bool {
-	return filepath.Ext(filePath) == requiredExt
+	return slices.Contains(requiredExts, filepath.Ext(filePath))
 }
 
 func (terraformConfigAnalyzer) Type() analyzer.Type {

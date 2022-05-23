@@ -5,14 +5,18 @@ import (
 )
 
 type ScannerOption struct {
-	Trace       bool
-	Namespaces  []string
-	PolicyPaths []string
-	DataPaths   []string
+	Trace                   bool
+	RegoOnly                bool
+	Namespaces              []string
+	FilePatterns            []string
+	PolicyPaths             []string
+	DataPaths               []string
+	DisableEmbeddedPolicies bool
 }
 
 func (o *ScannerOption) Sort() {
 	sort.Strings(o.Namespaces)
+	sort.Strings(o.FilePatterns)
 	sort.Strings(o.PolicyPaths)
 	sort.Strings(o.DataPaths)
 }

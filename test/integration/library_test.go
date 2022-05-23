@@ -20,7 +20,7 @@ import (
 	"github.com/aquasecurity/fanal/artifact"
 	aimage "github.com/aquasecurity/fanal/artifact/image"
 	"github.com/aquasecurity/fanal/cache"
-	_ "github.com/aquasecurity/fanal/hook/all"
+	_ "github.com/aquasecurity/fanal/handler/all"
 	"github.com/aquasecurity/fanal/image"
 	"github.com/aquasecurity/fanal/types"
 	dtypes "github.com/docker/docker/api/types"
@@ -294,6 +294,15 @@ func checkLangPkgs(detail types.ArtifactDetail, t *testing.T, tc testCase) {
 			sort.Slice(app.Libraries, func(i, j int) bool {
 				return app.Libraries[i].FilePath < app.Libraries[j].FilePath
 			})
+
+			sort.Slice(app.Dependencies, func(i, j int) bool {
+				return strings.Compare(app.Dependencies[i].ID, app.Dependencies[j].ID) < 0
+			})
+
+			for i := range app.Dependencies {
+				sort.Strings(app.Dependencies[i].DependsOn)
+			}
+
 		}
 
 		// Do not compare layers
