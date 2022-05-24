@@ -129,7 +129,7 @@ func Test_gomodAnalyzer_Required(t *testing.T) {
 		},
 		{
 			name:     "sad",
-			filePath: "a/b/c/d/test.mod",
+			filePath: "a/b/c/d/test.sum",
 			want:     false,
 		},
 	}

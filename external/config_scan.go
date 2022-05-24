@@ -12,7 +12,7 @@ import (
 	"github.com/aquasecurity/fanal/cache"
 	"github.com/aquasecurity/fanal/types"
 
-	_ "github.com/aquasecurity/fanal/analyzer/all"
+	_ "github.com/aquasecurity/fanal/analyzer/config/all"
 )
 
 type ConfigScanner struct {

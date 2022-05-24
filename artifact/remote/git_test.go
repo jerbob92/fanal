@@ -9,14 +9,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	_ "github.com/aquasecurity/fanal/analyzer/config/all"
 	"github.com/aquasecurity/fanal/artifact"
 	"github.com/aquasecurity/fanal/cache"
 	"github.com/aquasecurity/fanal/types"
-
-	_ "github.com/aquasecurity/fanal/analyzer/config/dockerfile"
-	_ "github.com/aquasecurity/fanal/analyzer/config/json"
-	_ "github.com/aquasecurity/fanal/analyzer/config/terraform"
-	_ "github.com/aquasecurity/fanal/analyzer/config/yaml"
 )
 
 func setupGitServer() (*httptest.Server, error) {

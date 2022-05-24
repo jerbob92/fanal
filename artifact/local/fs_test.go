@@ -15,10 +15,7 @@ import (
 	"github.com/aquasecurity/fanal/cache"
 	"github.com/aquasecurity/fanal/types"
 
-	_ "github.com/aquasecurity/fanal/analyzer/config/dockerfile"
-	_ "github.com/aquasecurity/fanal/analyzer/config/json"
-	_ "github.com/aquasecurity/fanal/analyzer/config/terraform"
-	_ "github.com/aquasecurity/fanal/analyzer/config/yaml"
+	_ "github.com/aquasecurity/fanal/analyzer/config/all"
 	_ "github.com/aquasecurity/fanal/analyzer/language/python/pip"
 	_ "github.com/aquasecurity/fanal/analyzer/os/alpine"
 	_ "github.com/aquasecurity/fanal/analyzer/pkg/apk"
